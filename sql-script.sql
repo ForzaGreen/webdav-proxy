@@ -4,7 +4,7 @@ CREATE TABLE `tbl_user` (
   `user_id` BIGINT NULL AUTO_INCREMENT,
   `user_username` VARCHAR(45) NULL,
   `user_password` VARCHAR(255) NULL,
-  `user_type` ENUM('B','C')
+  `user_type` ENUM('B','C'),
   PRIMARY KEY (`user_id`));
 
 # Sign Up

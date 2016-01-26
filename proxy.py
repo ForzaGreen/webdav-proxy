@@ -126,13 +126,10 @@ def login():
  
         if len(data) > 0:
             if check_password_hash(str(data[0][2]),_password):
-                print 'login OK'
                 return 'login success'
             else:
-                print 'wrong password'
-                return 'login failed: wrong password'
+                return 'wrong password'
         else:
-            print 'no such user'
             return 'no such user'
     else: 
         return 'sth'
@@ -149,28 +146,24 @@ def signup():
             _password = json.loads(request.data.decode("utf-8")).get("password")
             _pw_hash = generate_password_hash(_password)
             _type = json.loads(request.data.decode("utf-8")).get("type")
-            print len(_pw_hash)
          
             # validate the received values
             if _username and _password and _type:
                 conn = mysql.connect()
                 cursor = conn.cursor()
-                #_hashed_password = generate_password_hash(_password)
                 cursor.callproc('sp_createUser',(_username,_pw_hash, _type))
-                data = cursor.fetchall()
-                print "Ok User in the database"
-                 
+                data = cursor.fetchall()               
                 if len(data) is 0:
                     conn.commit()
-                    return json.dumps({'message':'User created successfully !'})
+                    return "signup success"
                 else:
-                    return json.dumps({'error':str(data[0])})
+                    return "user already exists"
+                cursor.close() 
+                conn.close()
         
         except Exception as e:
             return json.dumps({'error':str(e)})
         #finally:
-            #cursor.close() 
-            #conn.close()
     else: 
         return 'sth'
 
