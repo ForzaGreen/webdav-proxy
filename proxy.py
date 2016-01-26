@@ -87,18 +87,28 @@ def dav(username, fileOrDir):
     davUrl = USERS.get(username).get('url') + fileOrDir
     app.logger.debug("Sending " + request.method + " request to: " + davUrl)
 
-    r = requests.Request( request.method, davUrl )
+    print("form: ", request.form)
+    print("args: ", request.args)
+    print("values: ", request.values)
+    print("length data: ", len(request.data))
+    print("files: ", request.files)
+    r = requests.Request( request.method, davUrl, data=request.data )
     s = requests.Session()
     resp = s.send(r.prepare())
     ##############################
-    response = Response(resp.text)
-    print(resp.headers)
+     
+    print("resp H: ", resp.headers)
+    print("Type resp H: ", type(resp.headers))
     if request.method == "GET":
-        response.headers['Content-Type'] = 'multipart/form-data'
-        response.headers['Accept-Ranges'] = 'bytes'
+        response = Response(resp.content)
+        response.headers['Content-Type'] = resp.headers['Content-Type']
+        for k in resp.headers.keys():
+            response.headers[k] = resp.headers[k]
     else:
+        response = Response(resp.text)
         response.headers['Content-Type'] = 'application/xml'
-    print(response.headers)
+    print("response H: ", response.headers)
+    print("Type response H: ", type(response.headers))
     return response
 
 
