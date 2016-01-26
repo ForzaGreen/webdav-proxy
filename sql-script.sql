@@ -7,7 +7,7 @@ CREATE TABLE `tbl_user` (
   `user_type` ENUM('B','C')
   PRIMARY KEY (`user_id`));
 
-# Sign Uo
+# Sign Up
 
 DELIMITER $$
 CREATE DEFINER=`ismail`@`localhost` PROCEDURE `sp_createUser`(

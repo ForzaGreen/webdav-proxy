@@ -125,7 +125,7 @@ def login():
  
  
         if len(data) > 0:
-            if str(data[0][2]) ==_password:
+            if check_password_hash(str(data[0][2]),_password):
                 print 'login OK'
                 return 'login success'
             else:
