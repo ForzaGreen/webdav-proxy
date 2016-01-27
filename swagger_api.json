@@ -1,0 +1,183 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Proxy API",
+        "description": "Communications between client and proxy.",
+        "version": "1.0.0"
+    },
+    "host": "localhost:5000",
+    "schemes": [
+        "https"
+    ],
+    "basePath": "/proxy",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/login": {
+            "post": {
+                "summary": "Login to the proxy",
+                "description": "The user is already registred to this proxy.\n",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": null,
+                        "description": "Username.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": null,
+                        "description": "Password.",
+                        "required": true,
+                        "type": "string",
+                        "format": "password"
+                    }
+                ],
+                "tags": [
+                    "Login"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string",
+                            "format": "login success"
+                        }
+                    },
+                    "default": {
+                        "description": "Failed",
+                        "schema": {
+                            "type": "string",
+                            "format": "login failed"
+                        }
+                    }
+                }
+            }
+        },
+        "/signup": {
+            "post": {
+                "summary": "Sign up as a new user to the proxy",
+                "description": "The user who wants to sign up got a token from the proxy's admin (user of type A).\nThe are two type of signing up, 'B' for a user who has a WebDAV server and wants to register it in the proxy; and 'C' for user who doesn't have a WebDAV server.\n",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": null,
+                        "description": "Username.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": null,
+                        "description": "Password.",
+                        "required": true,
+                        "type": "string",
+                        "format": "password"
+                    },
+                    {
+                        "name": "token",
+                        "in": null,
+                        "description": "given by A.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "userType",
+                        "in": null,
+                        "description": "B or C.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "webdavServer",
+                        "in": null,
+                        "description": "if B.",
+                        "required": false,
+                        "type": "string",
+                        "format": "url"
+                    }
+                ],
+                "tags": [
+                    "Signup"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "string",
+                            "format": "signup success"
+                        }
+                    },
+                    "default": {
+                        "description": "Failed",
+                        "schema": {
+                            "type": "string",
+                            "format": "signup failed"
+                        }
+                    }
+                }
+            }
+        },
+        "/token": {
+            "post": {
+                "summary": "Query a token",
+                "description": "The admin asks the proxy for a token, with type B or C. The admin then gives the token to the user who wants to register.\n",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": null,
+                        "description": "B or C.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Token",
+                    "Signup"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "String of 10 characters.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/dav/<username>/<path:fileOrDir>": {
+            "put": {
+                "summary": "Create a new file",
+                "tags": [
+                    "WebDAV"
+                ]
+            },
+            "get": {
+                "summary": "Download a file",
+                "tags": [
+                    "WebDAV"
+                ]
+            },
+            "mkcol": {
+                "summary": "Create a new directory",
+                "tags": [
+                    "WebDAV"
+                ]
+            },
+            "propfind": {
+                "summary": "List directory contents",
+                "tags": [
+                    "WebDAV"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a file or a directory",
+                "tags": [
+                    "WebDAV"
+                ]
+            }
+        }
+    }
+}
