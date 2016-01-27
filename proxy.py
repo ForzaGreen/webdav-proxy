@@ -3,7 +3,7 @@ import requests, json, random, string
 from flask.ext.cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, methods=['GET', 'PROPFIND', 'MKCOL', 'MOVE', 'COPY', 'HEAD', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'])
 
 FILE = "sample.txt"
 USERS = {
@@ -58,7 +58,6 @@ def myDav(username):
     if request.method == "OPTIONS":
         return "sth"
 
-
     else:
         ##############################
         davUrl = USERS.get(username).get('url')
@@ -82,34 +81,34 @@ def myDav(username):
 
 @app.route('/proxy/dav/<username>/<path:fileOrDir>', methods=['PROPFIND', 'MKCOL', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def dav(username, fileOrDir):
-    ##############################
+    print("###############################################")
+    if request.method == "OPTIONS":
+        return "sth"
 
-    davUrl = USERS.get(username).get('url') + fileOrDir
-    app.logger.debug("Sending " + request.method + " request to: " + davUrl)
-
-    print("form: ", request.form)
-    print("args: ", request.args)
-    print("values: ", request.values)
-    print("length data: ", len(request.data))
-    print("files: ", request.files)
-    r = requests.Request( request.method, davUrl, data=request.data )
-    s = requests.Session()
-    resp = s.send(r.prepare())
-    ##############################
-     
-    print("resp H: ", resp.headers)
-    print("Type resp H: ", type(resp.headers))
-    if request.method == "GET":
-        response = Response(resp.content)
-        response.headers['Content-Type'] = resp.headers['Content-Type']
-        for k in resp.headers.keys():
-            response.headers[k] = resp.headers[k]
     else:
-        response = Response(resp.text)
-        response.headers['Content-Type'] = 'application/xml'
-    print("response H: ", response.headers)
-    print("Type response H: ", type(response.headers))
-    return response
+        ##############################
+        print(request.headers)
+
+        davUrl = USERS.get(username).get('url') + fileOrDir
+        app.logger.debug("Sending " + request.method + " request to: " + davUrl)
+
+        r = requests.Request( request.method, davUrl, data=request.data )
+        s = requests.Session()
+        resp = s.send(r.prepare())
+        ##############################
+         
+        print("resp H: ", resp.headers)
+        if request.method == "GET":
+            response = Response(resp.content)
+            response.headers['Content-Type'] = resp.headers['Content-Type']
+            for k in resp.headers.keys():
+                response.headers[k] = resp.headers[k]
+        else:
+            response = Response(resp.text)
+            response.headers['Content-Type'] = 'application/xml'
+        print("response H: ", response.headers)
+        return response
+    print("###############################################")
 
 
 @app.route('/proxy/login', methods=['GET', 'POST', 'OPTIONS'])
