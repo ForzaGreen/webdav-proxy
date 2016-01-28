@@ -1,9 +1,19 @@
 from flask import Flask, request, url_for, redirect, Response
+from flask.ext.mysql import MySQL
 import requests, json, random, string
 from flask.ext.cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app, methods=['GET', 'PROPFIND', 'MKCOL', 'MOVE', 'COPY', 'HEAD', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'])
+mysql=MySQL()
+# MySQL configurations
+app.config['MYSQL_DATABASE_USER'] = 'ismail'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'webdav'
+app.config['MYSQL_DATABASE_DB'] = 'Webdav'
+app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+mysql.init_app(app)
+
 
 FILE = "sample.txt"
 USERS = {
@@ -79,11 +89,15 @@ def myDav(username):
         # return Response( response=resp.content, status=resp.status_code)
         
 
-@app.route('/proxy/dav/<username>/<path:fileOrDir>', methods=['PROPFIND', 'MKCOL', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+@app.route('/proxy/dav/<username>/  <path:fileOrDir>', methods=['PROPFIND', 'MKCOL', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def dav(username, fileOrDir):
     print("###############################################")
     if request.method == "OPTIONS":
         return "sth"
+    ##############################
+    
+    davUrl = USERS.get(username).get('url') + fileOrDir
+    app.logger.debug("Sending " + request.method + " request to: " + davUrl)
 
     else:
         ##############################
@@ -115,8 +129,22 @@ def dav(username, fileOrDir):
 def login():
     if request.method == "POST":
         app.logger.debug(request.data)
-        username = json.loads(request.data.decode("utf-8")).get("username") #bytes -> str -> dict
-        return 'login success'
+        _username = json.loads(request.data.decode("utf-8")).get("username") #bytes -> str -> dict
+        _password = json.loads(request.data.decode("utf-8")).get("password")
+
+        con = mysql.connect()
+        cursor = con.cursor()
+        cursor.callproc('sp_validateLogin',(_username,))
+        data = cursor.fetchall() 
+ 
+ 
+        if len(data) > 0:
+            if check_password_hash(str(data[0][2]),_password):
+                return 'login success'
+            else:
+                return 'wrong password'
+        else:
+            return 'no such user'
     else: 
         return 'sth'
 
@@ -125,7 +153,31 @@ def signup():
     if request.method == "POST":
         app.logger.debug(request.data)
         #get token + discard token + signing up 
-        return 'signup success'
+
+        #signing up
+        try:
+            _username = json.loads(request.data.decode("utf-8")).get("username")
+            _password = json.loads(request.data.decode("utf-8")).get("password")
+            _pw_hash = generate_password_hash(_password)
+            _type = json.loads(request.data.decode("utf-8")).get("type")
+         
+            # validate the received values
+            if _username and _password and _type:
+                conn = mysql.connect()
+                cursor = conn.cursor()
+                cursor.callproc('sp_createUser',(_username,_pw_hash, _type))
+                data = cursor.fetchall()               
+                if len(data) is 0:
+                    conn.commit()
+                    return "signup success"
+                else:
+                    return "user already exists"
+                cursor.close() 
+                conn.close()
+        
+        except Exception as e:
+            return json.dumps({'error':str(e)})
+        #finally:
     else: 
         return 'sth'
 
@@ -137,7 +189,7 @@ def token():
         def generateToken(typeOfUser, N):
             return ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(N))
         token = generateToken(typeOfUser, 10) 
-        #store this token in the database   
+        #store this token in the database with type (B or C)  
         return token
     else: 
         return 'sth'
