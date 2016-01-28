@@ -48,3 +48,12 @@ BEGIN
     select * from tbl_user where user_username = p_username;
 END$$
 DELIMITER ;
+
+# Secured resources TABLE
+CREATE TABLE `tbl_resources` (
+  `resource_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `resource_path` varchar(200) DEFAULT NULL,
+  `resource_uploader_id` BIGINT DEFAULT NULL,
+  `resource_key` varchar(255) NULL,
+  PRIMARY KEY (`resource_uploader_id`)
+);

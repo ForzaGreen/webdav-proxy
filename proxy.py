@@ -92,7 +92,7 @@ def myDav(username):
 @app.route('/proxy/dav/<username>/  <path:fileOrDir>', methods=['PROPFIND', 'MKCOL', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def dav(username, fileOrDir):
     ##############################
-
+    
     davUrl = USERS.get(username).get('url') + fileOrDir
     app.logger.debug("Sending " + request.method + " request to: " + davUrl)
 
