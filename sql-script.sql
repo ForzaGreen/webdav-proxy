@@ -53,7 +53,52 @@ DELIMITER ;
 CREATE TABLE `tbl_resources` (
   `resource_id` BIGINT NOT NULL AUTO_INCREMENT,
   `resource_path` varchar(200) DEFAULT NULL,
-  `resource_uploader_id` BIGINT DEFAULT NULL,
+  `resource_uploader` varchar(45) NULL,
+  `resource_type` ENUM('file','collection'),
   `resource_key` varchar(255) NULL,
-  PRIMARY KEY (`resource_uploader_id`)
+  PRIMARY KEY (`resource_id`)
 );
+
+# Add a resource
+DELIMITER $$
+CREATE DEFINER=`ismail`@`localhost` PROCEDURE `sp_addResource`(
+    IN p_path VARCHAR(200),
+    IN p_uploader varchar(45),
+    IN p_type ENUM('file', 'collection'),
+    IN p_key VARCHAR(255)
+)
+BEGIN
+    if ( select exists (select 1 from tbl_resources where resource_path = p_path) ) THEN
+     
+        select 'Resource Exists !!';
+     
+    ELSE
+     
+        insert into tbl_resources
+        (
+            resource_path,
+            resource_uploader,
+            resource_type,
+            resource_key
+        )
+        values
+        (
+            p_path,
+            p_uploader,
+            p_type,
+            p_key
+        );
+     
+    END IF;
+END$$
+DELIMITER ;
+
+# Give access to the resource
+DELIMITER $$
+CREATE DEFINER=`ismail`@`localhost` PROCEDURE `sp_accessresource`(
+IN p_path VARCHAR(200)
+)
+BEGIN
+    select * from tbl_resources where resource_path = p_path;
+END$$
+DELIMITER ;

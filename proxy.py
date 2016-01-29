@@ -32,7 +32,7 @@ USERS = {
     },
     "ismail": {
         "server": "lighttpd",
-        "url": "http://localhost:6003/"
+        "url": "http://localhost:6002/"
     }
 }
 
@@ -89,18 +89,14 @@ def myDav(username):
         # return Response( response=resp.content, status=resp.status_code)
         
 
-@app.route('/proxy/dav/<username>/  <path:fileOrDir>', methods=['PROPFIND', 'MKCOL', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+@app.route('/proxy/dav/<username>/<path:fileOrDir>', methods=['PROPFIND', 'MKCOL', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def dav(username, fileOrDir):
     print("###############################################")
     if request.method == "OPTIONS":
         return "sth"
     ##############################
-    
-    davUrl = USERS.get(username).get('url') + fileOrDir
-    app.logger.debug("Sending " + request.method + " request to: " + davUrl)
 
     else:
-        ##############################
         print(request.headers)
 
         davUrl = USERS.get(username).get('url') + fileOrDir
@@ -112,6 +108,43 @@ def dav(username, fileOrDir):
         ##############################
          
         print("resp H: ", resp.headers)
+
+        _resourcePath = fileOrDir
+        _resourceUploader = username
+        
+        if request.method == "PUT":
+            _resourceType = 'file'
+            _resourceKey = request.headers.get("file-key") #json.loads(request.data.decode("utf-8")).get("file_key")
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_addResource',(_resourcePath,_resourceUploader,_resourceType, _resourceKey))
+            data = cursor.fetchall()
+     
+            if len(data) is 0:
+                conn.commit()
+                print "Resource " + _resourcePath + " stored with key : " + _resourceKey
+
+            else:
+                print 'An error occurred!'
+        
+        if request. method == "MKCOL":
+            _resourceType = 'collection'
+            _resourceKey = request.headers.get("dir-key")
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_addResource',(_resourcePath,_resourceUploader,_resourceType, _resourceKey))
+            data = cursor.fetchall()
+     
+            if len(data) is 0:
+                conn.commit()
+                print "Resource " + _resourcePath + " stored with key : " + _resourceKey
+
+            else:
+                print 'An error occurred!'
+
+
         if request.method == "GET":
             response = Response(resp.content)
             response.headers['Content-Type'] = resp.headers['Content-Type']
