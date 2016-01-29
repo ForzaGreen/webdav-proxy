@@ -144,12 +144,26 @@ def dav(username, fileOrDir):
             else:
                 print 'An error occurred!'
 
+        if request.method == "POST":
+            _resourceKey = _resourceKey = request.headers.get("resource-key");
 
+            con = mysql.connect()
+            cursor = con.cursor()
+            cursor.callproc('sp_accessresource',(_resourcePath,))
+            data = cursor.fetchall() 
+
+            if len(data) > 0:
+                if str(data[0][4]) == _resourceKey: 
+                    return 'Good password'
+            else:
+                return 'Wrong password'
+                               
         if request.method == "GET":
             response = Response(resp.content)
             response.headers['Content-Type'] = resp.headers['Content-Type']
             for k in resp.headers.keys():
                 response.headers[k] = resp.headers[k]
+            return 'OK'
         else:
             response = Response(resp.text)
             response.headers['Content-Type'] = 'application/xml'
