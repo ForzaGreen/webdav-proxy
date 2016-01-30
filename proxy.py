@@ -127,6 +127,8 @@ def dav(username, fileOrDir):
 
             else:
                 print 'An error occurred!'
+            cursor.close()
+            conn.close()
         
         if request. method == "MKCOL":
             _resourceType = 'collection'
@@ -143,12 +145,14 @@ def dav(username, fileOrDir):
 
             else:
                 print 'An error occurred!'
+            cursor.close()
+            conn.close()
 
         if request.method == "POST":
             _resourceKey = _resourceKey = request.headers.get("resource-key");
 
-            con = mysql.connect()
-            cursor = con.cursor()
+            conn = mysql.connect()
+            cursor = conn.cursor()
             cursor.callproc('sp_accessresource',(_resourcePath,))
             data = cursor.fetchall() 
 
@@ -157,13 +161,29 @@ def dav(username, fileOrDir):
                     return 'Good password'
             else:
                 return 'Wrong password'
-                               
+            cursor.close()
+            conn.close()                   
+        
         if request.method == "GET":
             response = Response(resp.content)
             response.headers['Content-Type'] = resp.headers['Content-Type']
             for k in resp.headers.keys():
                 response.headers[k] = resp.headers[k]
             return 'OK'
+
+        if request.method == "DELETE":
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_deleteResource',(_resourcePath,))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+            
+            cursor.close()
+            conn.close()
+            return 'OK resource deleted'
+
         else:
             response = Response(resp.text)
             response.headers['Content-Type'] = 'application/xml'
@@ -207,12 +227,13 @@ def signup():
             _password = json.loads(request.data.decode("utf-8")).get("password")
             _pw_hash = generate_password_hash(_password)
             _type = json.loads(request.data.decode("utf-8")).get("type")
+            _webdavServer = json.loads(request.data.decode("utf-8")).get("webdavServer")
          
             # validate the received values
             if _username and _password and _type:
                 conn = mysql.connect()
                 cursor = conn.cursor()
-                cursor.callproc('sp_createUser',(_username,_pw_hash, _type))
+                cursor.callproc('sp_createUser',(_username,_pw_hash, _type, _webdavServer))
                 data = cursor.fetchall()               
                 if len(data) is 0:
                     conn.commit()
