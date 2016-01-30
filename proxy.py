@@ -162,14 +162,23 @@ def dav(username, fileOrDir):
             else:
                 return 'Wrong password'
             cursor.close()
-            conn.close()                   
-        
+            conn.close()                  
+
         if request.method == "GET":
             response = Response(resp.content)
             response.headers['Content-Type'] = resp.headers['Content-Type']
             for k in resp.headers.keys():
                 response.headers[k] = resp.headers[k]
-            return 'OK'
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_accessresource',(_resourcePath,))
+            data = cursor.fetchall()
+
+            if (str(data[0][4])=='null'):
+                return 'Not encrypted'
+            else:
+                return 'Encrypted'
 
         if request.method == "DELETE":
             conn = mysql.connect()
