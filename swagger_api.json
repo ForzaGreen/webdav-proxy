@@ -46,11 +46,18 @@
                             "format": "login success"
                         }
                     },
-                    "default": {
+                    ".": {
                         "description": "Failed",
                         "schema": {
                             "type": "string",
-                            "format": "login failed"
+                            "format": "wrong password"
+                        }
+                    },
+                    "..": {
+                        "description": "Failed",
+                        "schema": {
+                            "type": "string",
+                            "format": "User doesn't exist"
                         }
                     }
                 }
@@ -110,7 +117,14 @@
                             "format": "signup success"
                         }
                     },
-                    "default": {
+                    ".": {
+                        "description": "Failed",
+                        "schema": {
+                            "type": "string",
+                            "format": "User already exists"
+                        }
+                    },
+                    "..": {
                         "description": "Failed",
                         "schema": {
                             "type": "string",
@@ -148,6 +162,8 @@
             }
         },
         "/dav/<username>/<path:fileOrDir>": {
+          
+            
             "put": {
                 "summary": "Create a new file",
                 "tags": [
